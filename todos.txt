@@ -1,0 +1,4 @@
+- Add datetime to log lines
+- Add tags
+- Add database
+
