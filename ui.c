@@ -12,7 +12,7 @@ static void ui_draw_notes(int start) {
         localtime_r(&notes[i].timestamp, &local_time);
         
         char timestamp_str[16];
-        strftime(timestamp_str, sizeof(timestamp_str), "%H:%M:%S", &local_time);
+        strftime(timestamp_str, sizeof(timestamp_str), "%m-%d %H:%M", &local_time);
 
         char rendered[NOTE_CONTENT_MAX_LEN + 32];
         int len = snprintf(rendered, sizeof(rendered), "[%s] %s",
