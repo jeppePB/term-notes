@@ -5,7 +5,11 @@
 int main(void) {
     struct tb_event ev;
 
-    tb_init();        
+    if (tb_init() != 0) {
+        fprintf(stderr, "Failed to initialize termbox\n");
+        return 1;
+    }        
+
     int running = 1;
     while (running) {
         tb_clear();
