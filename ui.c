@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
 #include <time.h>
 #include "appstate.h"
 #include "note_table.h"
@@ -33,12 +30,18 @@ static void ui_draw_notes(int top_row, int bottom_row) {
     }
 }
 
+static void ui_draw_input_widget(int row) {
+    char widget_str[] = "[no tag]";
+    tb_printf(0, row, 0, 0, "%s %s", widget_str, input_buf);
+}
+
 void ui_draw_screen(void) {
     char header[] = "-- type something, Enter to submit, ctrl-q to quit --";
     char debug[] = "[debug] last key code: %d | charcount: %d | term_size: %d rows %d cols";
     int y = 0;
     tb_print(0, y++, TB_WHITE, TB_DEFAULT, header); 
     ui_draw_notes(y, tb_height() - 10);
-    tb_printf(2, tb_height() - 2, 0, 0, input_buf);
+    tb_printf(0, tb_height() - 3, 0, 0, "________________________________________________________________");
+    ui_draw_input_widget(tb_height()-2);
     tb_printf(0, tb_height() - 1, 0, 0, debug, input_last_key, input_len, tb_height(), tb_width()); 
 }
