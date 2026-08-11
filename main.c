@@ -1,9 +1,3 @@
-#include <stdlib.h>
-#include <termios.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include "terminal.h"
-#include "note_table.h"
 #include "input.h"
 #include "ui.h"
 #include "termbox2.h"
@@ -22,15 +16,5 @@ int main(void) {
     }
     tb_shutdown();
 
-    // write(STDOUT_FILENO, "\x1b[?1049h", 8);  // enter alternate screen
-    // atexit(terminal_restore_screen);
-    //
-    // terminal_enable_raw_mode();
-    // terminal_init();
-    //
-    // ui_draw_screen();
-    // while(process_keypress()) {
-    //     ui_draw_screen();
-    // }
-    return 0;
+   return 0;
 }
