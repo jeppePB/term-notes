@@ -1,3 +1,13 @@
+UI
+----
+- add line for tags above input box
+- darker background for input box
+- expand notes
+- divide lines longer than window width into multiple rows
+- different text color for tags, notes
+
+FUNCTIONALITY
+----
 - Add tags
 - Add database
 
