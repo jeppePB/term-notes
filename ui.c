@@ -2,51 +2,43 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
-#include "terminal.h"
+#include "appstate.h"
 #include "note_table.h"
 #include "input.h"
 
-static void ui_draw_notes(int start) {
-    for (int i = start; i < note_count; i++) {
+static void ui_draw_notes(int top_row, int bottom_row) {
+    int visible = bottom_row - top_row;
+    if (visible < 1) return;
+
+    int end = note_count - scroll_offset;
+    int start = end - visible;
+    if (start < 0) start = 0;
+
+    int row = top_row;
+    
+    for (int i = start; i < end; i++) {
         struct tm local_time;
         localtime_r(&notes[i].timestamp, &local_time);
-        
+
         char timestamp_str[16];
         strftime(timestamp_str, sizeof(timestamp_str), "%m-%d %H:%M", &local_time);
 
-        char rendered[NOTE_CONTENT_MAX_LEN + 32];
-        int len = snprintf(rendered, sizeof(rendered), "[%s] %s",
-                    timestamp_str, notes[i].content);
-
-        write(STDOUT_FILENO, rendered, len);
-        write(STDOUT_FILENO, "\r\n", 2);
+        uintattr_t color = (focus == FOCUS_NOTES) ? TB_YELLOW : TB_WHITE;
+        tb_printf(0, row, color, TB_DEFAULT, "[%s] %s", timestamp_str, notes[i].content);
+        row++;
+    }
+    if (scroll_offset > 0) {
+        tb_printf(bottom_row - visible, bottom_row + 1, TB_CYAN, TB_DEFAULT, 
+                "-- scrolled back to %d --", scroll_offset);
     }
 }
 
 void ui_draw_screen(void) {
-    write(STDOUT_FILENO, "\x1b[2J", 4);   // clear screen
-    write(STDOUT_FILENO, "\x1b[H", 3);    // cursor to top-left}
-    
-    char header[] = "-- type something, Enter to submit, ctrl-q to quit --\r\n\r\n";
-    write(STDOUT_FILENO, header, strlen(header));
-
-    // reserve rows for header
-    int reserved = 7;
-    int visible_notes = term_size.rows - reserved;
-    if (visible_notes < 1) visible_notes = 1;
-
-    // display log lines
-    int start = note_count > visible_notes ? note_count - visible_notes : 0;
-
-    ui_draw_notes(start);
-    write(STDOUT_FILENO, "\r\n>", 4);
-    write(STDOUT_FILENO, input_buf, input_len);
-    write(STDOUT_FILENO, "\r\n\r\n", 4);
-
-    // debug view - raw numeric codes
-    char debug_line[96];
-    int len = snprintf(debug_line, sizeof(debug_line),
-        "[debug] last key code: %d  |  charcount: %d | term size: %d rows %d cols %d redraw\r\n",
-        input_last_key, input_len, term_size.rows, term_size.cols, terminal_needs_redraw);
-    write(STDOUT_FILENO, debug_line, len);
+    char header[] = "-- type something, Enter to submit, ctrl-q to quit --";
+    char debug[] = "[debug] last key code: %d | charcount: %d | term_size: %d rows %d cols";
+    int y = 0;
+    tb_print(0, y++, TB_WHITE, TB_DEFAULT, header); 
+    ui_draw_notes(y, tb_height() - 10);
+    tb_printf(2, tb_height() - 2, 0, 0, input_buf);
+    tb_printf(0, tb_height() - 1, 0, 0, debug, input_last_key, input_len, tb_height(), tb_width()); 
 }

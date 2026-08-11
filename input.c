@@ -1,3 +1,6 @@
+#include "termbox2.h"
+#include "appstate.h"
+#include "note_table.h"
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
@@ -8,66 +11,53 @@ char input_buf[INPUT_MAX] = {0};
 int input_len = 0;
 int input_last_key = -1;
 
-int input_read_key(void) {
-    unsigned char c;
-    int nread;
-    while ((nread = read(STDIN_FILENO, &c, 1)) != 1){
-        if (nread == -1 && errno != EINTR) exit(1); // read is -1 and read was not interrupted by signal
-        if (terminal_needs_redraw) {
-            terminal_needs_redraw = 0;
-            return KEY_RESIZE;
+int input_process_event(struct tb_event *ev) {
+    input_last_key = ev->ch;
+    if (ev -> type != TB_EVENT_KEY) return 1;
+    if (ev -> key == TB_KEY_CTRL_Q) return 0; // Quit regardless of focus
+
+    if (ev -> key == TB_KEY_TAB) {
+        focus = (focus == FOCUS_INPUT) ? FOCUS_NOTES : FOCUS_INPUT;
+        return 1;
+    }    
+    if (focus == FOCUS_NOTES) {
+        if (ev -> key == TB_KEY_ARROW_UP) {
+            if (scroll_offset < note_count - 1) scroll_offset++;
+        }
+        else if (ev -> key == TB_KEY_ARROW_DOWN) {
+            if (scroll_offset > 0) scroll_offset--;
+        }
+        else if (ev -> key == TB_KEY_PGUP) {
+            scroll_offset+=10;
+            if (scroll_offset > note_count - 1) scroll_offset = note_count - 1;
+        }
+        else if (ev -> key == TB_KEY_PGDN) {
+            scroll_offset-=10;
+            if (scroll_offset < 0) scroll_offset = 0;
+        }
+        return 1;
+    }
+    if (focus == FOCUS_INPUT) {
+        if (ev -> key == TB_KEY_BACKSPACE || ev -> key == TB_KEY_BACKSPACE2) {
+            if (input_len > 0) {
+                input_len--;
+                input_buf[input_len] = '\0';
+            }
+        } 
+        else if (ev -> key == TB_KEY_ENTER) {
+           if (input_len > 0) {
+               note_push(input_buf);
+               scroll_offset = 0; // Snap back to latest entry
+           }
+           input_len = 0;
+           input_buf[0] = '\0';
+        }
+        else if (ev -> ch != 0) {
+            if (input_len < INPUT_MAX - 1){
+                input_buf[input_len++] = (char) ev -> ch;
+                input_buf[input_len] = '\0';
+            }
         }
     }
-    
-
-    // If c is an ordinary keypress, return as-is
-    if (c != '\x1b') {
-        return c;
-    }
-
-    // Handle CSI sequence
-    char bracket;
-    if (read(STDIN_FILENO, &bracket, 1) != 1) return '\x1b';
-    if (bracket != '[') return '\x1b';
-
-    char params[16];
-    int plen = 0;
-    char final = 0;
-
-    while (1) {
-        char b;
-        if (read(STDIN_FILENO, &b, 1) != 1) return '\x1b';
-        
-        if ((b >= '0' && b <= '9') || b == ';') {
-            if (plen < (int)sizeof(params) - 1) params[plen++] = b;
-            continue;
-        }
-        final = b;
-        break;
-    }
-    params[plen] = '\0';
-
-    if (plen == 0) {
-        switch (final) {
-            case 'A': return ARROW_UP;
-            case 'B': return ARROW_DOWN;
-            case 'C': return ARROW_RIGHT;
-            case 'D': return ARROW_LEFT;
-            case 'H': return HOME_KEY;
-            case 'F': return END_KEY;
-        }
-    } else if (final == '~') {
-        int code = atoi(params);
-        switch (code) {
-            case 1: return HOME_KEY;
-            case 3: return DEL_KEY;
-            case 4: return END_KEY;
-            case 5: return PAGE_UP;
-            case 6: return PAGE_DOWN;
-        }
-    }
- 
-    return '\x1b';
+    return 1;
 }
-
-

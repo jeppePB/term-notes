@@ -2,7 +2,7 @@ CC = clang
 CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g
 TARGET = app
 
-SRCS = main.c terminal.c note_table.c input.c ui.c
+SRCS = main.c terminal.c appstate.c note_table.c input.c ui.c termbox_impl.c
 OBJS = $(SRCS:.c=.o)
 
 $(TARGET): $(OBJS)
