@@ -1,11 +1,8 @@
 #include "termbox2.h"
 #include "appstate.h"
 #include "note_table.h"
-#include <stdlib.h>
-#include <errno.h>
 #include <unistd.h>
 #include "input.h"
-#include "terminal.h"
 
 char input_buf[INPUT_MAX] = {0};
 int input_len = 0;
