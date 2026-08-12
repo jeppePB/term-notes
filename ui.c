@@ -57,6 +57,8 @@ static void ui_draw_notes(int top_row, int bottom_row) {
             tb_print(12, row, TB_WHITE, TB_DEFAULT, wrapped[i]);
             if (i == 0) {
                 tb_print(0, row, TB_YELLOW, TB_BLACK, timestamp_str);
+            } else if (row == top_row) {
+                tb_print(6, row, TB_YELLOW, TB_BLACK, "^");
             }
             row --;
         }
