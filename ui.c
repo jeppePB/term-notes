@@ -66,34 +66,6 @@ static void ui_draw_notes(int top_row, int bottom_row) {
     }
 }
 
-
-// static void ui_draw_notes(int top_row, int bottom_row) {
-//     int visible = bottom_row - top_row;
-//     if (visible < 1) return;
-//
-//     int end = note_count - scroll_offset;
-//     int start = end - visible;
-//     if (start < 0) start = 0;
-//
-//     int row = top_row;
-//
-//     for (int i = start; i < end; i++) {
-//         struct tm local_time;
-//         localtime_r(&notes[i].timestamp, &local_time);
-//
-//         char timestamp_str[16];
-//         strftime(timestamp_str, sizeof(timestamp_str), "%m-%d %H:%M", &local_time);
-//
-//         uintattr_t color = (focus == FOCUS_NOTES) ? TB_YELLOW : TB_WHITE;
-//         tb_printf(0, row, color, TB_DEFAULT, "[%s] %s", timestamp_str, notes[i].content);
-//         row++;
-//     }
-//     if (scroll_offset > 0) {
-//         tb_printf(bottom_row - visible, bottom_row + 1, TB_CYAN, TB_DEFAULT, 
-//                 "-- scrolled back to %d --", scroll_offset);
-//     }
-// }
-//
 static void ui_draw_input_widget(int row) {
     char wrapped[16][MAX_INPUT];
     int lines = wrap_text(input_buf, tb_width(), wrapped, 16); 
