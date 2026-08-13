@@ -49,35 +49,69 @@ static void fill_region(int top_row, int bottom_row, uintattr_t color_bg) {
 }
 
 static void ui_draw_notes(int top_row, int bottom_row) {
+    Note recent[64];
+    int n = note_get_recent(recent, 64);
+
+    // hide note widget if too few rows are available
     int visible = bottom_row - top_row;
     if (visible < 1) return;
 
     int pane_width = tb_width();
     char wrapped[MAX_LINE_WRAPS][MAX_INPUT];
-    int row = bottom_row - 1; // Fill from bottom upward
-    int idx = note_count - 1 - scroll_offset;
+    int row = bottom_row - 1; // fill from bottom upward
+    int idx = 0 + scroll_offset;
 
-    while (idx >= 0 && row >= top_row) {
+    while (idx <= n && row >= top_row) {
         struct tm local_time;
-        localtime_r(&notes[idx].timestamp, &local_time);
+        localtime_r(&recent[idx].timestamp, &local_time);
         char timestamp_str[TIMESTAMP_COL_WIDTH];
         strftime(timestamp_str, TIMESTAMP_COL_WIDTH, "%m-%d %H:%M", &local_time);
 
-        int wrapped_count = wrap_text(notes[idx].content, pane_width - TIMESTAMP_COL_WIDTH, wrapped, MAX_LINE_WRAPS);
+        int wrapped_count = wrap_text(recent[idx].content, pane_width - TIMESTAMP_COL_WIDTH, wrapped, MAX_LINE_WRAPS);
 
-        for (int i = wrapped_count - 1; i >= 0 && row >= top_row; i--){
+        for (int i = wrapped_count - 1; i >= 0 && row >= top_row; i--) {
             tb_print(TIMESTAMP_COL_WIDTH, row, TB_WHITE, TB_DEFAULT, wrapped[i]);
             if (i == 0) {
                 tb_print(0, row, TB_YELLOW, TB_BLACK, timestamp_str);
             } else if (row == top_row) {
                 tb_print(6, row, TB_YELLOW, TB_BLACK, "^");
             }
-            row --;
+            row--;
         }
-        idx--;
+        idx++;
     }
 }
 
+// static void ui_draw_notes(int top_row, int bottom_row) {
+//     int visible = bottom_row - top_row;
+//     if (visible < 1) return;
+//
+//     int pane_width = tb_width();
+//     char wrapped[MAX_LINE_WRAPS][MAX_INPUT];
+//     int row = bottom_row - 1; // Fill from bottom upward
+//     int idx = note_count - 1 - scroll_offset;
+//
+//     while (idx >= 0 && row >= top_row) {
+//         struct tm local_time;
+//         localtime_r(&notes[idx].timestamp, &local_time);
+//         char timestamp_str[TIMESTAMP_COL_WIDTH];
+//         strftime(timestamp_str, TIMESTAMP_COL_WIDTH, "%m-%d %H:%M", &local_time);
+//
+//         int wrapped_count = wrap_text(notes[idx].content, pane_width - TIMESTAMP_COL_WIDTH, wrapped, MAX_LINE_WRAPS);
+//
+//         for (int i = wrapped_count - 1; i >= 0 && row >= top_row; i--){
+//             tb_print(TIMESTAMP_COL_WIDTH, row, TB_WHITE, TB_DEFAULT, wrapped[i]);
+//             if (i == 0) {
+//                 tb_print(0, row, TB_YELLOW, TB_BLACK, timestamp_str);
+//             } else if (row == top_row) {
+//                 tb_print(6, row, TB_YELLOW, TB_BLACK, "^");
+//             }
+//             row --;
+//         }
+//         idx--;
+//     }
+// }
+//
 static void ui_draw_input_widget(int top_row, int bottom_row) {
     fill_region(top_row, bottom_row, color_input_bg);
     char wrapped[MAX_LINE_WRAPS][MAX_INPUT];

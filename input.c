@@ -18,15 +18,16 @@ int input_process_event(struct tb_event *ev) {
         return 1;
     }    
     if (focus == FOCUS_NOTES) {
+        int note_count_total = note_total_count();
         if (ev -> key == TB_KEY_ARROW_UP) {
-            if (scroll_offset < note_count - 1) scroll_offset++;
+            if (scroll_offset < note_count_total - 1) scroll_offset++;
         }
         else if (ev -> key == TB_KEY_ARROW_DOWN) {
             if (scroll_offset > 0) scroll_offset--;
         }
         else if (ev -> key == TB_KEY_PGUP) {
             scroll_offset+=10;
-            if (scroll_offset > note_count - 1) scroll_offset = note_count - 1;
+            if (scroll_offset > note_count_total - 1) scroll_offset = note_count_total - 1;
         }
         else if (ev -> key == TB_KEY_PGDN) {
             scroll_offset-=10;
