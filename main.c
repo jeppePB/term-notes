@@ -1,8 +1,13 @@
 #include "input.h"
 #include "ui.h"
 #include "termbox2.h"
+#include "db.h"
+#include "note_table.h"
 
 int main(void) {
+    db_init("test.db");
+    note_init();
+
     struct tb_event ev;
 
     if (tb_init() != 0) {
@@ -18,6 +23,7 @@ int main(void) {
         tb_poll_event(&ev);
         running = input_process_event(&ev);
     }
+    db_close();
     tb_shutdown();
 
    return 0;
