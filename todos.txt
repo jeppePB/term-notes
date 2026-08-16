@@ -12,3 +12,8 @@ QOL
 ----
 - Tag templates
 - Tag autocomplete
+
+BUGS
+----
+- Cursor is no longer shown properly for input box after adding cmd box
+- Scrolling in notes moves past the last note, giving blank lines when scrolling to the top
