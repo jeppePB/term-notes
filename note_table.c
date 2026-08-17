@@ -21,15 +21,14 @@ int note_init(void) {
     return 0;
 }
 
-void note_push(const char *line) {
+ long long note_push(const char *line) {
     const char *sql = "INSERT INTO notes (timestamp, content) VALUES (?, ?);";
     sqlite3_stmt *stmt;
-    sqlite3 *db = db_handle();
 
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    int rc = sqlite3_prepare_v2(db_handle(), sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "Prepare failed: %s\n", sqlite3_errmsg(db));
-        return;
+        fprintf(stderr, "Prepare failed: %s\n", sqlite3_errmsg(db_handle()));
+        return -1;
     }
 
     sqlite3_bind_int64(stmt, 1, (long long)time(NULL));
@@ -37,10 +36,12 @@ void note_push(const char *line) {
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
-        fprintf(stderr, "Insert failed: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "Insert failed: %s\n", sqlite3_errmsg(db_handle()));
+        return -1;
     }
 
     sqlite3_finalize(stmt);
+    return sqlite3_last_insert_rowid(db_handle());
 }      
 
 int note_get_recent(Note *out, int max_count) {

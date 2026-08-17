@@ -13,7 +13,7 @@ typedef struct {
 } Note;
 
 int note_init(void);
-void note_push(const char *line);
+long long note_push(const char *line);
 
 int note_get_recent(Note *out, int max_count);
 int note_total_count(void);
