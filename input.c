@@ -1,6 +1,7 @@
 #include "termbox2.h"
 #include "appstate.h"
 #include "note_table.h"
+#include "tags.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -14,12 +15,12 @@ int input_len = 0;
 int input_last_key = -1;
 
 static int tag_already_active(const char *name){
-   for (int i = 0; i < active_tag_count; i++) {
-       if (strcmp(active_tags[i], name) == 0) {
-           return 1;
-       }
-   }
-   return 0;
+    for (int i = 0; i < active_tag_count; i++) {
+        if (strcmp(active_tags[i], name) == 0) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 static void cmd_execute(void) {
@@ -40,7 +41,7 @@ static void cmd_execute(void) {
     cmd_buf[0] = '\0';
     focus = FOCUS_INPUT;
 }
-    
+
 int input_process_event(struct tb_event *ev) {
     input_last_key = ev->ch;
     if (ev -> type != TB_EVENT_KEY) return 1;
@@ -72,7 +73,7 @@ int input_process_event(struct tb_event *ev) {
         }
         return 1;
     }
-            
+
 
     if (focus == FOCUS_NOTES) {
         int note_count_total = note_total_count();
@@ -100,12 +101,21 @@ int input_process_event(struct tb_event *ev) {
             }
         } 
         else if (ev -> key == TB_KEY_ENTER) {
-           if (input_len > 0) {
-               note_push(input_buf);
-               scroll_offset = 0; // Snap back to latest entry
-           }
-           input_len = 0;
-           input_buf[0] = '\0';
+            if (input_len > 0) {
+                long long note_id = note_push(input_buf);
+                if (note_id != -1) {
+                    for (int i = 0; i < active_tag_count; i++) {
+                        long long tag_id = tags_get_or_create(active_tags[i]);
+                        if (tag_id != -1) {
+                            tags_attach_to_note(note_id, tag_id);
+                        }
+                    }
+
+                    scroll_offset = 0; // Snap back to latest entry
+                }
+            }
+            input_len = 0;
+            input_buf[0] = '\0';
         }
         else if (ev -> ch != 0) {
             if (input_len < INPUT_MAX - 1){
