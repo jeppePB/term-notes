@@ -102,17 +102,41 @@ static void ui_draw_input_widget(int top_row, int bottom_row) {
     }
 }
 
+static void draw_cmd(int row) {
+    tb_print(0, row, TB_YELLOW, TB_DEFAULT, cmd_buf);
+    if (focus == FOCUS_COMMAND) {
+        int c_x = cmd_len;
+        int c_y = row;
+        tb_set_cursor(c_x, c_y);
+    } else {
+        tb_hide_cursor();
+    }
+}
+
+static void draw_tags(int row) {
+    int tag_x = 0; 
+    for (int i = 0; i < active_tag_count; i++) {
+        tb_print(tag_x, row, TB_BLUE, TB_DEFAULT, active_tags[i]);
+        tag_x += strlen(active_tags[i]);
+        tag_x += 1;
+    } 
+}
+static void draw_debug(int row) {
+    char debug[] = "[debug] charcount: %d | term_size: %d rows %d cols";
+    tb_printf(0, tb_height() - 1, 0, 0, debug, input_len, tb_height(), tb_width()); 
+}
+
 void ui_draw_screen(void) {
     char header[] = "-- type something, Enter to submit, ctrl-q to quit --";
-    char debug[] = "[debug] input_height: %d | charcount: %d | term_size: %d rows %d cols";
     int y = 0;
 
     int rows_needed = (MAX_INPUT + tb_width() - 1) / tb_width(); // ceiling division
     int input_widget_height = (rows_needed > MAX_LINE_WRAPS) ? MAX_LINE_WRAPS : rows_needed;
-    int input_widget_y = tb_height() - input_widget_height - 1; // one row reserved for debug line
-
+    int input_widget_bottom = tb_height() - 1; // one row reserved for debug line
+    int input_widget_top = input_widget_bottom - input_widget_height;
     tb_print(0, y++, TB_WHITE, TB_DEFAULT, header); 
-    ui_draw_notes(y, input_widget_y-1);
-    ui_draw_input_widget(input_widget_y, input_widget_y + input_widget_height);
-    tb_printf(0, tb_height() - 1, 0, 0, debug, input_widget_height, input_len, tb_height(), tb_width()); 
+    ui_draw_notes(y, input_widget_top-2);
+    draw_tags(input_widget_top-1);
+    ui_draw_input_widget(input_widget_top, input_widget_bottom);
+    draw_cmd(input_widget_bottom);
 }
