@@ -4,7 +4,7 @@ LDLIBS = -lsqlite3
 
 TARGET = app
 
-SRCS = main.c appconfig.c appstate.c db.c note_table.c input.c ui.c termbox_impl.c
+SRCS = main.c tags.c appconfig.c appstate.c db.c note_table.c input.c ui.c termbox_impl.c
 OBJS = $(SRCS:.c=.o)
 
 $(TARGET): $(OBJS)
