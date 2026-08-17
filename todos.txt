@@ -17,3 +17,8 @@ BUGS
 ----
 - Cursor is no longer shown properly for input box after adding cmd box
 - Scrolling in notes moves past the last note, giving blank lines when scrolling to the top
+
+QUESTIONS
+----
+- Create tags first and THEN push note? Is it better to create the note with some missing tags that are fixed later?
+
