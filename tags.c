@@ -51,7 +51,7 @@ long long tags_get_or_create(const char *name) {
     const char *insert_sql = "INSERT INTO tags (name) VALUES (?);";
     rc = sqlite3_prepare_v2(db_handle(), insert_sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
-        printf(stderr, "Prepare (insert tag) failed: %s\n", sqlite3_errmsg(db_handle()));
+        fprintf(stderr, "Prepare (insert tag) failed: %s\n", sqlite3_errmsg(db_handle()));
         return -1;
     }
 
