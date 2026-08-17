@@ -3,6 +3,10 @@
 // Input config
 #include "termbox2.h"
 #define INPUT_MAX 256
+#define CMD_MAX 32
+
+extern char cmd_buf[CMD_MAX];
+extern int cmd_len;
 
 extern char input_buf[INPUT_MAX];
 extern int input_len;
