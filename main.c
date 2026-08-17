@@ -3,10 +3,12 @@
 #include "termbox2.h"
 #include "db.h"
 #include "note_table.h"
+#include "tags.h"
 
 int main(void) {
     db_init("test.db");
     note_init();
+    tags_init();
 
     struct tb_event ev;
 
