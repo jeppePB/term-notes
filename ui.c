@@ -42,12 +42,12 @@ static int ui_wrap_text(const char* text, int max_line_len, char out[][MAX_INPUT
 
     return out_count;
 }
-static void ui_draw_focus_indicator(int col, int top_row, int bottom_row, int is_focused, int *x_idx) {
-    uintattr_t color = is_focused ? color_focus_indicator : TB_DEFAULT;
-    for (int row = top_row; row <= bottom_row; row++) {
-        tb_set_cell(col, row, ' ', TB_DEFAULT, color);
+static void ui_draw_focus_indicator(Widget *w) {
+    uintattr_t color = w->is_focused ? color_focus_indicator : TB_DEFAULT;
+    for (int row = w->top; row <= w->bottom; row++) {
+        tb_set_cell(w->x_cursor, row, ' ', TB_DEFAULT, color);
     }
-    *x_idx+=1; // indicator + padding
+    w->x_cursor++; // indicator + padding
 }
 
 static void ui_fill_row(int row, uintattr_t color_bg) {
@@ -62,26 +62,24 @@ static void ui_fill_region(int top_row, int bottom_row, uintattr_t color_bg) {
     }
 }
 
-static void ui_draw_notes(int top_row, int bottom_row) {
-    int x_idx = 0;
+static void ui_draw_notes(Widget *w) {
     int padding = 1;
-    int is_focused = focus == FOCUS_NOTES; 
-    ui_draw_focus_indicator(0, top_row, bottom_row, is_focused, &x_idx);
-    x_idx += padding;
+    ui_draw_focus_indicator(w);
+    w->x_cursor += padding;
 
     Note recent[64];
     int n = note_get_recent_filtered(recent, 64);
 
     // hide note widget if too few rows are available
-    int visible = bottom_row - top_row;
+    int visible = w->bottom - w->top;
     if (visible < 1) return;
 
     int pane_width = tb_width();
     char wrapped[MAX_LINE_WRAPS][MAX_INPUT];
-    int row = bottom_row - 1; // fill from bottom upward
+    int row = w->bottom; // fill from bottom upward
     int idx = 0 + scroll_offset;
 
-    while (idx < n && row >= top_row) {
+    while (idx < n && row >= w->top) {
         struct tm local_time;
         localtime_r(&recent[idx].timestamp, &local_time);
         char timestamp_str[TIMESTAMP_COL_WIDTH];
@@ -90,12 +88,12 @@ static void ui_draw_notes(int top_row, int bottom_row) {
         int wrapped_count = ui_wrap_text(recent[idx].content, pane_width - TIMESTAMP_COL_WIDTH, wrapped, MAX_LINE_WRAPS);
         
         // draw row
-        for (int i = wrapped_count - 1; i >= 0 && row >= top_row; i--) {
-            tb_print(TIMESTAMP_COL_WIDTH + x_idx, row, TB_WHITE, TB_DEFAULT, wrapped[i]);
+        for (int i = wrapped_count - 1; i >= 0 && row >= w->top; i--) {
+            tb_print(TIMESTAMP_COL_WIDTH + w->x_cursor, row, TB_WHITE, TB_DEFAULT, wrapped[i]);
             if (i == 0) {
-                tb_print(x_idx, row, TB_YELLOW, TB_BLACK, timestamp_str);
-            } else if (row == top_row) {
-                tb_print(x_idx + 5, row, TB_YELLOW, TB_BLACK, "^"); // 'magic' number to put the '^' in the center of the datestring
+                tb_print(w->x_cursor, row, TB_YELLOW, TB_BLACK, timestamp_str);
+            } else if (row == w->top) {
+                tb_print(w->x_cursor + 5, row, TB_YELLOW, TB_BLACK, "^"); // 'magic' number to put the '^' in the center of the datestring
             }
             row--;
         }
@@ -158,7 +156,26 @@ void ui_draw_screen(void) {
     int input_widget_bottom = tb_height() - 1; // one row reserved for debug line
     int input_widget_top = input_widget_bottom - input_widget_height;
     tb_print(0, y++, TB_WHITE, TB_DEFAULT, header); 
-    ui_draw_notes(y, input_widget_top-2);
+    Widget notes_widget = {
+        .top = y, .bottom = input_widget_top - 2,
+        .is_focused = (focus == FOCUS_NOTES)
+    };
+    Widget tags_widget = {
+        .top = input_widget_top-1,
+        .bottom = input_widget_top-1,
+    };
+    Widget input_widget = {
+        .top = input_widget_top,
+        .bottom = input_widget_bottom,
+        .is_focused = (focus == FOCUS_INPUT)
+    };
+    Widget cmd_widget = {
+        .top = input_widget_bottom,
+        .bottom = input_widget_bottom,
+        .is_focused = (focus == FOCUS_COMMAND)
+    };
+    
+    ui_draw_notes(&notes_widget);
     ui_draw_tags(input_widget_top-1);
     ui_draw_input_widget(input_widget_top, input_widget_bottom);
     ui_draw_cmd(input_widget_bottom);
