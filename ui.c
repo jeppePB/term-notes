@@ -5,9 +5,15 @@
 #include "input.h"
 #include "termbox2.h"
 
+typedef struct {
+    int top, bottom;
+    int x_cursor;
+    int is_focused;
+} Widget;
+
 // returns number of wrapped lines written. wrapped segments are written to out[][].
 // each out[i] is a buffer of at least MAX_INPUT + 1 chars.
-static int wrap_text(const char* text, int max_line_len, char out[][MAX_INPUT], int max_out_lines) {
+static int ui_wrap_text(const char* text, int max_line_len, char out[][MAX_INPUT], int max_out_lines) {
     int text_len = strlen(text);
     int out_count = 0;
     int pos = 0;
@@ -36,21 +42,35 @@ static int wrap_text(const char* text, int max_line_len, char out[][MAX_INPUT], 
 
     return out_count;
 }
-static void fill_row(int row, uintattr_t color_bg) {
+static void ui_draw_focus_indicator(int col, int top_row, int bottom_row, int is_focused, int *x_idx) {
+    uintattr_t color = is_focused ? color_focus_indicator : TB_DEFAULT;
+    for (int row = top_row; row <= bottom_row; row++) {
+        tb_set_cell(col, row, ' ', TB_DEFAULT, color);
+    }
+    *x_idx+=1; // indicator + padding
+}
+
+static void ui_fill_row(int row, uintattr_t color_bg) {
     int width = tb_width();
     for (int x = 0; x < width; x++) {
         tb_set_cell(x, row, ' ', TB_WHITE, color_bg);
     }
 }
-static void fill_region(int top_row, int bottom_row, uintattr_t color_bg) {
+static void ui_fill_region(int top_row, int bottom_row, uintattr_t color_bg) {
     for (int i = top_row; i < bottom_row; i++) {
-        fill_row(i, color_bg);
+        ui_fill_row(i, color_bg);
     }
 }
 
 static void ui_draw_notes(int top_row, int bottom_row) {
+    int x_idx = 0;
+    int padding = 1;
+    int is_focused = focus == FOCUS_NOTES; 
+    ui_draw_focus_indicator(0, top_row, bottom_row, is_focused, &x_idx);
+    x_idx += padding;
+
     Note recent[64];
-    int n = note_get_recent(recent, 64);
+    int n = note_get_recent_filtered(recent, 64);
 
     // hide note widget if too few rows are available
     int visible = bottom_row - top_row;
@@ -61,20 +81,21 @@ static void ui_draw_notes(int top_row, int bottom_row) {
     int row = bottom_row - 1; // fill from bottom upward
     int idx = 0 + scroll_offset;
 
-    while (idx <= n && row >= top_row) {
+    while (idx < n && row >= top_row) {
         struct tm local_time;
         localtime_r(&recent[idx].timestamp, &local_time);
         char timestamp_str[TIMESTAMP_COL_WIDTH];
         strftime(timestamp_str, TIMESTAMP_COL_WIDTH, "%m-%d %H:%M", &local_time);
 
-        int wrapped_count = wrap_text(recent[idx].content, pane_width - TIMESTAMP_COL_WIDTH, wrapped, MAX_LINE_WRAPS);
-
+        int wrapped_count = ui_wrap_text(recent[idx].content, pane_width - TIMESTAMP_COL_WIDTH, wrapped, MAX_LINE_WRAPS);
+        
+        // draw row
         for (int i = wrapped_count - 1; i >= 0 && row >= top_row; i--) {
-            tb_print(TIMESTAMP_COL_WIDTH, row, TB_WHITE, TB_DEFAULT, wrapped[i]);
+            tb_print(TIMESTAMP_COL_WIDTH + x_idx, row, TB_WHITE, TB_DEFAULT, wrapped[i]);
             if (i == 0) {
-                tb_print(0, row, TB_YELLOW, TB_BLACK, timestamp_str);
+                tb_print(x_idx, row, TB_YELLOW, TB_BLACK, timestamp_str);
             } else if (row == top_row) {
-                tb_print(6, row, TB_YELLOW, TB_BLACK, "^");
+                tb_print(x_idx + 5, row, TB_YELLOW, TB_BLACK, "^"); // 'magic' number to put the '^' in the center of the datestring
             }
             row--;
         }
@@ -83,9 +104,9 @@ static void ui_draw_notes(int top_row, int bottom_row) {
 }
 
 static void ui_draw_input_widget(int top_row, int bottom_row) {
-    fill_region(top_row, bottom_row, color_input_bg);
+    ui_fill_region(top_row, bottom_row, color_input_bg);
     char wrapped[MAX_LINE_WRAPS][MAX_INPUT];
-    int lines = wrap_text(input_buf, tb_width(), wrapped, MAX_LINE_WRAPS); 
+    int lines = ui_wrap_text(input_buf, tb_width(), wrapped, MAX_LINE_WRAPS); 
     for (int i = 0; i < lines; i++) {
         tb_print(0, top_row+i, 0, color_input_bg, wrapped[i]);
     }
@@ -102,10 +123,11 @@ static void ui_draw_input_widget(int top_row, int bottom_row) {
     }
 }
 
-static void draw_cmd(int row) {
-    tb_print(0, row, TB_YELLOW, TB_DEFAULT, cmd_buf);
+static void ui_draw_cmd(int row) {
     if (focus == FOCUS_COMMAND) {
-        int c_x = cmd_len;
+        tb_print(0, row, TB_YELLOW, TB_DEFAULT, ":");
+        tb_print(1, row, TB_YELLOW, TB_DEFAULT, cmd_buf);
+        int c_x = cmd_len + 1;
         int c_y = row;
         tb_set_cursor(c_x, c_y);
     } else {
@@ -113,10 +135,10 @@ static void draw_cmd(int row) {
     }
 }
 
-static void draw_tags(int row) {
+static void ui_draw_tags(int row) {
     int tag_x = 0; 
     for (int i = 0; i < active_tag_count; i++) {
-        tb_print(tag_x, row, TB_BLUE, TB_DEFAULT, active_tags[i]);
+        tb_print(tag_x, row, TB_BLUE, TB_BLACK, active_tags[i]);
         tag_x += strlen(active_tags[i]);
         tag_x += 1;
     } 
@@ -125,6 +147,7 @@ static void draw_debug(int row) {
     char debug[] = "[debug] charcount: %d | term_size: %d rows %d cols";
     tb_printf(0, tb_height() - 1, 0, 0, debug, input_len, tb_height(), tb_width()); 
 }
+
 
 void ui_draw_screen(void) {
     char header[] = "-- type something, Enter to submit, ctrl-q to quit --";
@@ -136,7 +159,7 @@ void ui_draw_screen(void) {
     int input_widget_top = input_widget_bottom - input_widget_height;
     tb_print(0, y++, TB_WHITE, TB_DEFAULT, header); 
     ui_draw_notes(y, input_widget_top-2);
-    draw_tags(input_widget_top-1);
+    ui_draw_tags(input_widget_top-1);
     ui_draw_input_widget(input_widget_top, input_widget_bottom);
-    draw_cmd(input_widget_bottom);
+    ui_draw_cmd(input_widget_bottom);
 }
