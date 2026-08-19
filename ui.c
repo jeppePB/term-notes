@@ -146,8 +146,9 @@ void ui_draw_screen(void) {
     char header[] = "-- type something, Enter to submit, ctrl-q to quit --";
     int y = 0;
 
-    int rows_needed = (MAX_INPUT + tb_width() - 1) / tb_width(); // ceiling division
-    int input_widget_height = (rows_needed > MAX_LINE_WRAPS) ? MAX_LINE_WRAPS : rows_needed;
+    int input_rows_needed = (MAX_INPUT + tb_width() - 1) / tb_width(); // ceiling division
+
+    int input_widget_height = (input_rows_needed > MAX_LINE_WRAPS) ? MAX_LINE_WRAPS : input_rows_needed;
     int input_widget_bottom = tb_height() - 1; // one row reserved for debug line
     int input_widget_top = input_widget_bottom - input_widget_height;
     tb_print(0, y++, TB_WHITE, TB_DEFAULT, header); 
