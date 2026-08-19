@@ -7,7 +7,7 @@
 
 typedef struct {
     int top, bottom;
-    int x_cursor;
+    int x_cursor, y_cursor;
     int is_focused;
 } Widget;
 
@@ -101,44 +101,37 @@ static void ui_draw_notes(Widget *w) {
     }
 }
 
-static void ui_draw_input_widget(int top_row, int bottom_row) {
-    ui_fill_region(top_row, bottom_row, color_input_bg);
+static void ui_draw_input_widget(Widget *w) {
+    ui_fill_region(w->top, w->bottom, color_input_bg);
     char wrapped[MAX_LINE_WRAPS][MAX_INPUT];
     int lines = ui_wrap_text(input_buf, tb_width(), wrapped, MAX_LINE_WRAPS); 
+    
+ 
     for (int i = 0; i < lines; i++) {
-        tb_print(0, top_row+i, 0, color_input_bg, wrapped[i]);
+        tb_print(0, w->top+i, 0, color_input_bg, wrapped[i]);
+        w->y_cursor = i;
+        w->x_cursor = strlen(wrapped[i]);
     }
     if (focus == FOCUS_INPUT) {
-        int c_x = 0;
-        int c_y = top_row;
-        if (lines > 0) {
-            c_x = strlen(wrapped[lines-1]);
-            c_y = top_row + lines - 1;
-        }
-        tb_set_cursor(c_x, c_y);
-    } else {
-        tb_hide_cursor();
+        tb_set_cursor(w->x_cursor, w->top + w->y_cursor);
     }
 }
 
-static void ui_draw_cmd(int row) {
+static void ui_draw_cmd(Widget *w) {
+    w->y_cursor = w->top;
     if (focus == FOCUS_COMMAND) {
-        tb_print(0, row, TB_YELLOW, TB_DEFAULT, ":");
-        tb_print(1, row, TB_YELLOW, TB_DEFAULT, cmd_buf);
-        int c_x = cmd_len + 1;
-        int c_y = row;
-        tb_set_cursor(c_x, c_y);
-    } else {
-        tb_hide_cursor();
+        tb_print(w->x_cursor++, w->y_cursor, TB_YELLOW, TB_DEFAULT, ":");
+        tb_print(w->x_cursor, w->y_cursor, TB_YELLOW, TB_DEFAULT, cmd_buf);
+        w->x_cursor += strlen(cmd_buf);
+        tb_set_cursor(w->x_cursor, w->y_cursor);
     }
 }
 
-static void ui_draw_tags(int row) {
-    int tag_x = 0; 
+static void ui_draw_tags(Widget *w) {
     for (int i = 0; i < active_tag_count; i++) {
-        tb_print(tag_x, row, TB_BLUE, TB_BLACK, active_tags[i]);
-        tag_x += strlen(active_tags[i]);
-        tag_x += 1;
+        tb_print(w->x_cursor, w->top, TB_BLUE, TB_BLACK, active_tags[i]);
+        w->x_cursor += strlen(active_tags[i]);
+        w->x_cursor += 1;
     } 
 }
 static void draw_debug(int row) {
@@ -157,7 +150,8 @@ void ui_draw_screen(void) {
     int input_widget_top = input_widget_bottom - input_widget_height;
     tb_print(0, y++, TB_WHITE, TB_DEFAULT, header); 
     Widget notes_widget = {
-        .top = y, .bottom = input_widget_top - 2,
+        .top = y, 
+        .bottom = input_widget_top - 2,
         .is_focused = (focus == FOCUS_NOTES)
     };
     Widget tags_widget = {
@@ -176,7 +170,7 @@ void ui_draw_screen(void) {
     };
     
     ui_draw_notes(&notes_widget);
-    ui_draw_tags(input_widget_top-1);
-    ui_draw_input_widget(input_widget_top, input_widget_bottom);
-    ui_draw_cmd(input_widget_bottom);
+    ui_draw_tags(&tags_widget);
+    ui_draw_input_widget(&input_widget);
+    ui_draw_cmd(&cmd_widget);
 }
