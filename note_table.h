@@ -16,6 +16,7 @@ int note_init(void);
 long long note_push(const char *line);
 
 int note_get_recent(Note *out, int max_count);
+int note_get_recent_filtered(Note *out, int max_count);
 int note_total_count(void);
 
 #endif
