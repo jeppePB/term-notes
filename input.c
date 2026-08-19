@@ -37,6 +37,8 @@ static void cmd_execute(void) {
     } else if (matched == 1 && strcmp(verb, "tc") == 0) {
         active_tag_count = 0;
     }
+    // TODO: IMPLEMENT } else if (matched == 1 && verb == 'q') {
+
     cmd_len = 0;
     cmd_buf[0] = '\0';
     focus = FOCUS_INPUT;
@@ -67,6 +69,9 @@ int input_process_event(struct tb_event *ev) {
                 cmd_len--;
                 cmd_buf[cmd_len] = '\0';
             }
+            else {
+                focus = FOCUS_INPUT;
+            }
         } else if (ev -> ch != 0 && cmd_len < CMD_MAX -1) {
             cmd_buf[cmd_len++] = (char) ev-> ch;
             cmd_buf[cmd_len] = '\0';
@@ -77,10 +82,10 @@ int input_process_event(struct tb_event *ev) {
 
     if (focus == FOCUS_NOTES) {
         int note_count_total = note_total_count();
-        if (ev -> key == TB_KEY_ARROW_UP) {
+        if (ev -> key == TB_KEY_ARROW_UP || ev->ch =='k') {
             if (scroll_offset < note_count_total - 1) scroll_offset++;
         }
-        else if (ev -> key == TB_KEY_ARROW_DOWN) {
+        else if (ev -> key == TB_KEY_ARROW_DOWN || ev->ch == 'j') {
             if (scroll_offset > 0) scroll_offset--;
         }
         else if (ev -> key == TB_KEY_PGUP) {
