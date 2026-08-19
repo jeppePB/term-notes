@@ -5,10 +5,8 @@ UI
 
 FUNCTIONALITY
 ----
-- error reporting to user
 - error screen when below minimum dimensions
 - debug screen
-- central running state
 
 QOL
 ----
