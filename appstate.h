@@ -17,6 +17,7 @@ extern int running;
 // errors
 #define STATUS_MSG_MAX_LEN 128
 extern char status_message[STATUS_MSG_MAX_LEN];
+extern int status_displayed;
 void status_set(const char *msg);
 
 // tags

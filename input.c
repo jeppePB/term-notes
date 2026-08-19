@@ -36,6 +36,10 @@ static void cmd_execute(void) {
         }
     } else if (matched == 1 && strcmp(verb, "tc") == 0) {
         active_tag_count = 0;
+    } else { // unknown command
+        char msg[STATUS_MSG_MAX_LEN] = {0};
+        snprintf(msg, STATUS_MSG_MAX_LEN, "%s: %s", "Unknown command", cmd_buf);
+        status_set(msg); 
     }
     // TODO: IMPLEMENT } else if (matched == 1 && verb == 'q') {
 
