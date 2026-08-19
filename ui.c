@@ -65,6 +65,8 @@ static void ui_fill_region(int top_row, int bottom_row, uintattr_t color_bg) {
 static void ui_draw_notes(Widget *w) {
     int padding = 1;
     ui_draw_focus_indicator(w);
+    if (w->is_focused) { tb_hide_cursor(); }
+
     w->x_cursor += padding;
 
     Note recent[64];
@@ -112,14 +114,14 @@ static void ui_draw_input_widget(Widget *w) {
         w->y_cursor = i;
         w->x_cursor = strlen(wrapped[i]);
     }
-    if (focus == FOCUS_INPUT) {
+    if (w->is_focused) {
         tb_set_cursor(w->x_cursor, w->top + w->y_cursor);
     }
 }
 
 static void ui_draw_cmd(Widget *w) {
     w->y_cursor = w->top;
-    if (focus == FOCUS_COMMAND) {
+    if (w->is_focused) {
         tb_print(w->x_cursor++, w->y_cursor, TB_YELLOW, TB_DEFAULT, ":");
         tb_print(w->x_cursor, w->y_cursor, TB_YELLOW, TB_DEFAULT, cmd_buf);
         w->x_cursor += strlen(cmd_buf);
