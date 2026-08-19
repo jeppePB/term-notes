@@ -1,11 +1,13 @@
 UI
 ----
-- expand notes
+- expand notes detail screen when a note is hovered
+    - track cursor row in note list
+    - highlights
+- some sort of indicator for how many tags are attached to a note
 - different text color for tags, notes
 
 FUNCTIONALITY
 ----
-- error screen when below minimum dimensions
 - debug screen
 
 QOL
@@ -20,4 +22,5 @@ BUGS
 QUESTIONS
 ----
 - Create tags first and THEN push note? Is it better to create the note with some missing tags that are fixed later?
+- 'unfocus' / 'hover' view on esc?
 
