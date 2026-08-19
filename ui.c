@@ -122,13 +122,13 @@ static void ui_draw_input_widget(Widget *w) {
 static void ui_draw_cmd(Widget *w) {
     w->y_cursor = w->top;
     if (w->is_focused) {
+        status_displayed = 1;
         tb_print(w->x_cursor++, w->y_cursor, TB_YELLOW, TB_DEFAULT, ":");
         tb_print(w->x_cursor, w->y_cursor, TB_YELLOW, TB_DEFAULT, cmd_buf);
         w->x_cursor += strlen(cmd_buf);
         tb_set_cursor(w->x_cursor, w->y_cursor);
     } else if (!status_displayed) {
         tb_print(w->x_cursor, w->y_cursor, TB_RED, TB_DEFAULT, status_message);
-        status_displayed = 1;
     }
 }
 
