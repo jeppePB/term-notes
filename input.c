@@ -17,6 +17,9 @@ int input_last_key = -1;
 static int tag_already_active(const char *name){
     for (int i = 0; i < active_tag_count; i++) {
         if (strcmp(active_tags[i], name) == 0) {
+            char msg[STATUS_MSG_MAX_LEN] = {0};
+            snprintf(msg, STATUS_MSG_MAX_LEN, "%s: %s", "Tag already added", name);
+            status_set(msg);
             return 1;
         }
     }
@@ -48,18 +51,18 @@ static void cmd_execute(void) {
     focus = FOCUS_INPUT;
 }
 
-int input_process_event(struct tb_event *ev) {
+void input_process_event(struct tb_event *ev) {
     input_last_key = ev->ch;
-    if (ev -> type != TB_EVENT_KEY) return 1;
-    if (ev -> key == TB_KEY_CTRL_Q) return 0; // Quit regardless of focus
+    if (ev -> type != TB_EVENT_KEY) return;
+    if (ev -> key == TB_KEY_CTRL_Q) running = 0; // Quit regardless of focus
 
     if (ev -> key == TB_KEY_TAB) {
         focus = (focus == FOCUS_INPUT) ? FOCUS_NOTES : FOCUS_INPUT;
-        return 1;
+        return;
     }    
     if (focus == FOCUS_INPUT && ev->ch == ':') {
         focus = FOCUS_COMMAND;
-        return 1;
+        return;
     }
     if (focus == FOCUS_COMMAND) {
         if (ev -> key == TB_KEY_ESC) {
@@ -80,7 +83,7 @@ int input_process_event(struct tb_event *ev) {
             cmd_buf[cmd_len++] = (char) ev-> ch;
             cmd_buf[cmd_len] = '\0';
         }
-        return 1;
+        return;
     }
 
 
@@ -100,7 +103,7 @@ int input_process_event(struct tb_event *ev) {
             scroll_offset-=10;
             if (scroll_offset < 0) scroll_offset = 0;
         }
-        return 1;
+        return;
     }
     if (focus == FOCUS_INPUT) {
         if (ev -> key == TB_KEY_BACKSPACE || ev -> key == TB_KEY_BACKSPACE2) {
@@ -133,5 +136,5 @@ int input_process_event(struct tb_event *ev) {
             }
         }
     }
-    return 1;
+    return;
 }

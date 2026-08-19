@@ -4,6 +4,7 @@
 #include "db.h"
 #include "note_table.h"
 #include "tags.h"
+#include "appstate.h"
 
 int main(void) {
     db_init("test.db");
@@ -17,13 +18,12 @@ int main(void) {
         return 1;
     }        
 
-    int running = 1;
     while (running) {
         tb_clear();
         ui_draw_screen();
         tb_present();
         tb_poll_event(&ev);
-        running = input_process_event(&ev);
+        input_process_event(&ev);
     }
     db_close();
     tb_shutdown();
