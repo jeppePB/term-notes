@@ -146,7 +146,7 @@ static void draw_debug(int row) {
 
 static void ui_draw_error_screen() {
     ui_fill_region(0, tb_height(), TB_DEFAULT);
-    char err_msg[] = "Bad dimensions.\n Required rows: %d\n Required cols: %d\n Actual rows: %d\n Actual cols: %d\n";
+    char err_msg[] = "Bad dimensions.\n Min rows: %d\n Min cols: %d\n Actual rows: %d\n Actual cols: %d\n";
     tb_printf(0, 0, TB_RED, TB_BLACK, err_msg, MIN_TERM_HEIGHT, MIN_TERM_WIDTH, tb_height(), tb_width());
 }
 static int ui_check_terminal_sufficient() {
