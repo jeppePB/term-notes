@@ -11,5 +11,6 @@
 #define TIMESTAMP_COL_WIDTH 12
 
 extern uintattr_t color_input_bg;
+extern uintattr_t color_focus_indicator;
 
 #endif
