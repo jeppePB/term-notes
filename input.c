@@ -3,7 +3,6 @@
 #include "note_table.h"
 #include "tags.h"
 #include "cmdline.h"
-
 #include <unistd.h>
 #include "input.h"
 
