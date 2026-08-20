@@ -14,37 +14,20 @@ char input_buf[INPUT_MAX] = {0};
 int input_len = 0;
 int input_last_key = -1;
 
-static int tag_already_active(const char *name){
-    for (int i = 0; i < active_tag_count; i++) {
-        if (strcmp(active_tags[i], name) == 0) {
-            char msg[STATUS_MSG_MAX_LEN] = {0};
-            snprintf(msg, STATUS_MSG_MAX_LEN, "%s: %s", "Tag already added", name);
-            status_set(msg);
-            return 1;
-        }
-    }
-    return 0;
-}
-
 static void cmd_execute(void) {
-    // basic commands for tags - unknown commands are silently ignored for now.
     char verb[16] = {0};
     char arg[TAG_NAME_MAX_LEN] = {0};
 
     int matched = sscanf(cmd_buf, "%15s %9s", verb, arg);
 
     if (matched == 2 && strcmp(verb, "ta") == 0) {
-        if (active_tag_count < MAX_ACTIVE_TAGS && !tag_already_active(arg)) {
-            snprintf(active_tags[active_tag_count++], TAG_NAME_MAX_LEN, "%s", arg);
-        }
-    } else if (matched == 1 && strcmp(verb, "tc") == 0) {
-        active_tag_count = 0;
+        tags_add_to_buf(arg);
+    } else if (matched == 1 && strcmp(verb, "tca") == 0) {
+        tags_clear_buf();
     } else if (matched == 1 && strcmp(verb, "q") == 0) {
         running = 0;
     } else { // unknown command
-        char msg[STATUS_MSG_MAX_LEN] = {0};
-        snprintf(msg, STATUS_MSG_MAX_LEN, "%s: %s", "Unknown command", cmd_buf);
-        status_set(msg); 
+        status_set("Unknown command: %s", cmd_buf);
     }
 
     cmd_len = 0;

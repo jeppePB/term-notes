@@ -1,5 +1,6 @@
 #ifndef APPSTATE_H
 #define APPSTATE_H
+#include <stdarg.h>
 
 // ui
 typedef enum {
@@ -18,7 +19,7 @@ extern int running;
 #define STATUS_MSG_MAX_LEN 128
 extern char status_message[STATUS_MSG_MAX_LEN];
 extern int status_displayed;
-void status_set(const char *msg);
+void status_set(const char *fmt, ...);
 
 // tags
 #define MAX_ACTIVE_TAGS 8

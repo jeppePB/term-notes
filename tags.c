@@ -1,6 +1,9 @@
 #include "tags.h"
 #include "db.h"
+#include "appstate.h"
+#include "appconfig.h"
 #include <stdio.h>
+#include <string.h>
 
 int tags_init(void) {
     const char *sql = 
@@ -86,4 +89,30 @@ int tags_attach_to_note(long long note_id, long long tag_id) {
     }
     sqlite3_finalize(stmt);
     return 0;
+}
+
+static int tags_already_active(const char *name){
+    for (int i = 0; i < active_tag_count; i++) {
+        if (strcmp(active_tags[i], name) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void tags_add_to_buf(const char *name) {
+    if (strlen(name) >= TAG_NAME_MAX_LEN) {
+        status_set("Tag name too long. Actual length %zu, max length %d", strlen(name), TAG_NAME_MAX_LEN);
+        return;
+    } else if (tags_already_active(name)) {
+        status_set("Tag already active: %s", name);
+    } else if (active_tag_count >= MAX_ACTIVE_TAGS) {
+        status_set("Maximum active tag count reached");
+    } else {
+        snprintf(active_tags[active_tag_count++], TAG_NAME_MAX_LEN, "%s", name);
+    }
+}
+
+void tags_clear_buf(void) {
+    active_tag_count = 0;
 }

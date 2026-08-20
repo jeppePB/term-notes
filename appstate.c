@@ -16,7 +16,10 @@ int status_displayed = 1;
 char active_tags[MAX_ACTIVE_TAGS][TAG_NAME_MAX_LEN];
 int active_tag_count = 0;
 
-void status_set(const char *msg){
-    snprintf(status_message, STATUS_MSG_MAX_LEN, "%s", msg);
+void status_set(const char *fmt, ...){
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(status_message, STATUS_MSG_MAX_LEN, fmt, args);
+    va_end(args);
     status_displayed = 0;
 }
