@@ -3,6 +3,7 @@
 #include "appconfig.h"
 #include "note_table.h"
 #include "input.h"
+#include "cmdline.h"
 #include "termbox2.h"
 
 typedef struct {

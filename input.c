@@ -2,38 +2,13 @@
 #include "appstate.h"
 #include "note_table.h"
 #include "tags.h"
-#include <stdio.h>
-#include <string.h>
+#include "cmdline.h"
 #include <unistd.h>
 #include "input.h"
-
-char cmd_buf[CMD_MAX] = {0};
-int cmd_len = 0;
 
 char input_buf[INPUT_MAX] = {0};
 int input_len = 0;
 int input_last_key = -1;
-
-static void cmd_execute(void) {
-    char verb[16] = {0};
-    char arg[TAG_NAME_MAX_LEN] = {0};
-
-    int matched = sscanf(cmd_buf, "%15s %9s", verb, arg);
-
-    if (matched == 2 && strcmp(verb, "ta") == 0) {
-        tags_add_to_buf(arg);
-    } else if (matched == 1 && strcmp(verb, "tca") == 0) {
-        tags_clear_buf();
-    } else if (matched == 1 && strcmp(verb, "q") == 0) {
-        running = 0;
-    } else { // unknown command
-        status_set("Unknown command: %s", cmd_buf);
-    }
-
-    cmd_len = 0;
-    cmd_buf[0] = '\0';
-    focus = FOCUS_INPUT;
-}
 
 void input_process_event(struct tb_event *ev) {
     input_last_key = ev->ch;
@@ -54,7 +29,7 @@ void input_process_event(struct tb_event *ev) {
             cmd_buf[0] = '\0';
             focus = FOCUS_INPUT;
         } else if (ev -> key == TB_KEY_ENTER) {
-            cmd_execute();
+            cmdline_execute();
         } else if (ev -> key == TB_KEY_BACKSPACE || ev -> key == TB_KEY_BACKSPACE2) {
             if (cmd_len > 0) {
                 cmd_len--;
