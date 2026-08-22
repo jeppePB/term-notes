@@ -101,6 +101,10 @@ static int tags_already_active(const char *name){
 }
 
 void tags_add_to_buf(const char *name) {
+    if (name[0] == '\0') {
+        status_set("Usage: :ta <tag>");
+        return;
+    }   
     if (strlen(name) >= TAG_NAME_MAX_LEN) {
         status_set("Tag name too long. Actual length %zu, max length %d", strlen(name), TAG_NAME_MAX_LEN);
         return;
