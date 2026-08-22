@@ -6,6 +6,9 @@
 char cmd_buf[CMD_MAX] = {0};
 int cmd_len = 0;
 
+// function pointer
+//      void (*variable)(int var_a, int var_b)
+//      add typedef to make it reusable
 typedef void (*CommandHandler)(const char *arg);
 
 static void cmd_ta(const char *arg) { tags_add_to_buf(arg); }
